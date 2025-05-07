@@ -22,10 +22,19 @@ class FontLoader:
         if cls._fonts is None:
             base_dir = os.path.dirname(__file__)
             file_path = os.path.join(base_dir, 'Fonts.json')
-            with open(file_path, 'r', encoding='utf-8') as f:
-                cls._fonts = json.load(f)
+            
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"Файл '{file_path}' не найден.")
+            
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    cls._fonts = json.load(f)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Ошибка при разборе JSON из файла '{file_path}': {e}")
+            except Exception as e:
+                raise RuntimeError(f"Не удалось загрузить шрифты: {e}")
+        
         return cls._fonts
-
 class Printer:
     def __init__(self, color: Color = Color.WHITE, position: tuple[int, int]  = (1,1), symbol: str = '*') -> None:
         self._color = color
@@ -53,11 +62,13 @@ class Printer:
             sys.stdout.write(f"\033[{pos_y};{pos_x}H")
         sys.stdout.write(Color.RESET.value)
 
-    def print_dynamic(self, text: str):
-        text = text.upper()
-        height = len(next(iter(self._fonts.values())))
+    def print_dynamic(self, text: str) -> None:
+        if self._fonts is None:
+            raise RuntimeError("Шрифты не загружены. Используй Printer в блоке 'with'.")
         sys.stdout.write(f"\033[{self._position_y};{self._position_x}H")
         sys.stdout.write(self._color.value)
+        text = text.upper()
+        height = len(next(iter(self._fonts.values())))
         for row in range(height):
             for char in text:
                 line = self._fonts[char][row]
@@ -67,13 +78,14 @@ class Printer:
             sys.stdout.write(f"\033[{self._position_y};{self._position_x}H")
         self._position_y+=1
 
-    def __enter__(self):
-            self._fonts = FontLoader.get_fonts()
-            return self
+    def __enter__(self)  -> "Printer":
+        self._fonts = FontLoader.get_fonts()
+        return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         sys.stdout.write(Color.RESET.value)
         sys.stdout.write("\033[1;1H")
+        return False
 
 
 
@@ -87,5 +99,4 @@ if __name__ == "__main__":
 
     sys.stdout.write("\033[1;1H")
     os.system('cls')
-
     
