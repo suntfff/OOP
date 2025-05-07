@@ -14,12 +14,22 @@ class Color(Enum):
     PURPLE = "\033[35m"
     RESET = "\033[0m"
 
+class FontLoader:
+    _fonts = None
+
+    @classmethod
+    def get_fonts(cls) -> dict:
+        if cls._fonts is None:
+            base_dir = os.path.dirname(__file__)
+            file_path = os.path.join(base_dir, 'Fonts.json')
+            with open(file_path, 'r', encoding='utf-8') as f:
+                cls._fonts = json.load(f)
+        return cls._fonts
 
 class Printer:
-    def __init__(self, color: Color = Color.WHITE, position: tuple[int, int]  = (1,1), symbol: str = '*'):
+    def __init__(self, color: Color = Color.WHITE, position: tuple[int, int]  = (1,1), symbol: str = '*') -> None:
         self._color = color
         self._symbol = symbol
-        self._file = None
         self._fonts = None
         self._base_position_x = position[0]
         self._base_position_y = position[1]
@@ -27,28 +37,21 @@ class Printer:
         self._position_y = self._base_position_y
 
     @classmethod
-    def print_static(cls, text, color, position, symbol):
+    def print_static(cls, text: str, color  = Color.WHITE, position: tuple[int, int]  = (1,1), symbol: str = '*') -> None:
         pos_x, pos_y = position
         text = text.upper()
-        cls._load_fonts()
-        height = len(next(iter(cls._fonts.values())))
+        fonts = FontLoader.get_fonts()
+        height = len(next(iter(fonts.values())))
         sys.stdout.write(f"\033[{pos_y};{pos_x}H")
         sys.stdout.write(color.value)
         for row in range(height):
             for ch in text:
-                line = cls._fonts[ch][row]
+                line = fonts[ch][row]
                 for bit in line:
                     sys.stdout.write(symbol if bit == '1' else ' ')
             pos_y += 1
             sys.stdout.write(f"\033[{pos_y};{pos_x}H")
         sys.stdout.write(Color.RESET.value)
-
-    @classmethod
-    def _load_fonts(cls):
-        base_dir = os.path.dirname(__file__)
-        file_path = os.path.join(base_dir, 'Fonts.json')
-        with open(file_path, 'r', encoding='utf-8') as f:
-            cls._fonts = json.load(f)
 
     def print_dynamic(self, text: str):
         text = text.upper()
@@ -65,28 +68,24 @@ class Printer:
         self._position_y+=1
 
     def __enter__(self):
-            base_dir = os.path.dirname(__file__)
-            file_path = os.path.join(base_dir, 'Fonts.json')
-            self._file = open(file_path, 'r', encoding='utf-8')
-            self._fonts = json.load(self._file)
+            self._fonts = FontLoader.get_fonts()
             return self
-
-
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         sys.stdout.write(Color.RESET.value)
         sys.stdout.write("\033[1;1H")
-        self._file.close()
 
 
 
 
 if __name__ == "__main__":
     with Printer(Color.GREEN , (13, 5), '*') as printer:
-        printer.print_dynamic('ммм')
+        printer.print_dynamic('ичт')
         printer.print_dynamic('аба')
 
     Printer.print_static('ехе', Color.GREEN , (25, 5), '?')
 
     sys.stdout.write("\033[1;1H")
     os.system('cls')
+
+    
