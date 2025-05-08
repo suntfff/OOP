@@ -83,9 +83,12 @@ class Vector2d:
 
     @classmethod
     def from_point(cls, start: Point2d, end: Point2d):
-        x = end.x - start.x
-        y = end.y - start.y
-        return cls(x, y)
+        if isinstance(start, Point2d) and  isinstance(end, Point2d):
+            x = end.x - start.x
+            y = end.y - start.y
+            return cls(x, y)
+        raise TypeError(f"Метод принимает на вход объекты Point2d")
+
 
     @classmethod
     def dot_static(cls, v1: 'Vector2d', v2: 'Vector2d') -> int:
@@ -178,3 +181,11 @@ class Vector2d:
     def __repr__(self):
         return f"Vector2d({self._x}, {self._y})"
 
+if __name__ == "__main__":
+    p1 = Point2d(1,1)
+    p2 = Point2d(0, 0)
+    v2 = Vector2d(5, 7)
+    v3 = Vector2d(1, 2)
+    v1 = Vector2d.from_point(p2, p1)
+    for elem in v1:
+        print(elem)
