@@ -14,10 +14,10 @@ class ConsoleLogHandler(ILogHandler):
 class FileLogHandler(ILogHandler):
     def __init__(self, file_path: str) -> None:
         self._file_path = file_path
-
-    def handle(self, text: str) -> None:
         base_dir = os.path.dirname(__file__)
         self._file_path = os.path.join(base_dir, self._file_path)
+
+    def handle(self, text: str) -> None:
         try:
             with open(self._file_path, 'a', encoding='utf-8') as f:
                 f.write(text + '\n')
@@ -65,6 +65,8 @@ class Logger:
 
         for handler in self._handlers:
             handler.handle(text)
+
+
 
 
 
