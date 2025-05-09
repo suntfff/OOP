@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import os, socket, re, logging, platform, sys, win32evtlogutil, win32evtlog, logging, logging.handlers
+import os, re
 
 
 class ILogHandler(ABC):
@@ -27,38 +27,12 @@ class FileLogHandler(ILogHandler):
             raise OSError(f"Ошибка {error} при открытии файла {self._file_path}")
 
 class SocketHandler(ILogHandler):
-    def __init__(self, host: str, port: int) -> None:
-        self._host = host
-        self._port = port
-
     def handle(self, text: str) -> None:
-        try:
-            with socket.create_connection((self._host, self._port), 15) as s:
-                s.sendall(text.encode('utf-8'))
-        except socket.timeout as err:
-            raise socket.timeout(f'Превышено время ожидания: {err}') from err
-        except socket.error as err:
-            raise socket.error(f"Ошибка при отправке логов на {self._host}:{self._port}: {err}") from err
+        print('Запись в сокет')
 
 class SyslogHandler(ILogHandler):
-    def __init__(self,
-                 address: tuple[str, int] = ('localhost', 514),
-                 facility: int = logging.handlers.SysLogHandler.LOG_USER) -> None:
-        self._handler = logging.handlers.SysLogHandler(address, facility)
-        fmt = logging.Formatter('%(message)s')
-        self._handler.setFormatter(fmt)
-
     def handle(self, text: str) -> None:
-        record = logging.LogRecord(
-            name='SyslogHandler',
-            level=logging.INFO,
-            pathname='', lineno=0,
-            msg=text, args=(), exc_info=None
-        )
-        try:
-            self._handler.emit(record)
-        except Exception as err:
-            raise OSError(f"Ошибка при отправке в syslog ({self._handler.address}): {err}") from err
+        print('Заипсь в системный лог')
 
 class ILogFilter(ABC):
     @abstractmethod

@@ -14,6 +14,7 @@ class Color(Enum):
     PURPLE = "\033[35m"
     RESET = "\033[0m"
 
+
 class FontLoader:
     _fonts = None
 
@@ -22,10 +23,10 @@ class FontLoader:
         if cls._fonts is None:
             base_dir = os.path.dirname(__file__)
             file_path = os.path.join(base_dir, 'Fonts.json')
-            
+
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"Файл '{file_path}' не найден.")
-            
+
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     cls._fonts = json.load(f)
@@ -33,10 +34,12 @@ class FontLoader:
                 raise ValueError(f"Ошибка при разборе JSON из файла '{file_path}': {e}")
             except Exception as e:
                 raise RuntimeError(f"Не удалось загрузить шрифты: {e}")
-        
+
         return cls._fonts
+
+
 class Printer:
-    def __init__(self, color: Color = Color.WHITE, position: tuple[int, int]  = (1,1), symbol: str = '*') -> None:
+    def __init__(self, color: Color = Color.WHITE, position: tuple[int, int] = (1, 1), symbol: str = '*') -> None:
         self._color = color
         self._symbol = symbol
         self._fonts = None
@@ -46,13 +49,13 @@ class Printer:
         self._position_y = self._base_position_y
 
     @classmethod
-    def print_static(cls, text: str, color  = Color.WHITE, position: tuple[int, int]  = (1,1), symbol: str = '*') -> None:
+    def print_static(cls, text: str, color=Color.WHITE, position: tuple[int, int] = (1, 1), symbol: str = '*') -> None:
         pos_x, pos_y = position
+        sys.stdout.write(f"\033[{pos_y};{pos_x}H")
+        sys.stdout.write(color.value)
         text = text.upper()
         fonts = FontLoader.get_fonts()
         height = len(next(iter(fonts.values())))
-        sys.stdout.write(f"\033[{pos_y};{pos_x}H")
-        sys.stdout.write(color.value)
         for row in range(height):
             for ch in text:
                 line = fonts[ch][row]
@@ -74,11 +77,11 @@ class Printer:
                 line = self._fonts[char][row]
                 for symbol in line:
                     sys.stdout.write(self._symbol if symbol == '1' else ' ')
-            self._position_y+=1
+            self._position_y += 1
             sys.stdout.write(f"\033[{self._position_y};{self._position_x}H")
-        self._position_y+=1
+        self._position_y += 1
 
-    def __enter__(self)  -> "Printer":
+    def __enter__(self) -> "Printer":
         self._fonts = FontLoader.get_fonts()
         return self
 
@@ -88,15 +91,12 @@ class Printer:
         return False
 
 
-
-
 if __name__ == "__main__":
-    with Printer(Color.GREEN , (13, 5), '*') as printer:
+    with Printer(Color.GREEN, (13, 5), '*') as printer:
         printer.print_dynamic('ичт')
         printer.print_dynamic('аба')
 
-    Printer.print_static('ехе', Color.GREEN , (25, 5), '?')
+    Printer.print_static('ехе', Color.GREEN, (25, 5), '?')
 
     sys.stdout.write("\033[1;1H")
     os.system('cls')
-    
