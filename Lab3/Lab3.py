@@ -32,7 +32,7 @@ class SocketHandler(ILogHandler):
 
 class SyslogHandler(ILogHandler):
     def handle(self, text: str) -> None:
-        print('Заипсь в системный лог')
+        print('Запись в системные логи')
 
 class ILogFilter(ABC):
     @abstractmethod
@@ -66,7 +66,15 @@ class Logger:
         for handler in self._handlers:
             handler.handle(text)
 
-
-
-
+if __name__ == "__main__":
+    file_handler = FileLogHandler('myfile.txt')
+    console_handler = ConsoleLogHandler()
+    syslog_handler = SyslogHandler()
+    socket_handler = SocketHandler()
+    simple_filter = SimpleLogFilter('fff')
+    re_filter = ReLogFilter(r'^\d+([A-Za-z])\1\1\d+$')
+    handlers = [file_handler, console_handler, syslog_handler, socket_handler]
+    filters = [simple_filter, re_filter]
+    logger = Logger(handlers, filters)
+    logger.log('6ffff')
 
