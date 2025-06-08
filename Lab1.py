@@ -152,6 +152,8 @@ class Vector2d:
             raise TypeError("Ожидается целое число")
         if number == 0:
             raise ValueError("Не поддерживается деление на ноль")
+        if self.x % number == 0 or self.y % number == 0:
+            raise ValueError("Невозможно разделить vector на переданное число number")
         return Vector2d(self.x // number, self.y // number)
 
     def __add__(self, other):
