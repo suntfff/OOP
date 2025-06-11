@@ -1,8 +1,8 @@
 import os
 import json
 from abc import ABC, abstractmethod
-from typing import Optional, TypeVar, Generic, Type
-from dataclasses import dataclass, asdict
+from typing import Optional, TypeVar, Generic
+from dataclasses import dataclass
 
 @dataclass
 class Session:
@@ -33,24 +33,6 @@ class JsonSessionSerializer(IDataSerializer[Session]):
             raise ValueError("Ошибка декодирования JSON при загрузке сессии.")
         except Exception as e:
             raise ValueError(f"Ошибка десериализации сессии: {e}")
-
-class DataclassSerializer(IDataSerializer[T]):
-    def __init__(self, cls: Type[T]):
-        self.cls = cls
-
-    def serialize(self, item: T) -> bytes:
-        try:
-            return json.dumps(asdict(item)).encode()
-        except Exception as e:
-            raise ValueError(f"Ошибка сериализации объекта: {e}")
-
-    def deserialize(self, data: bytes) -> T:
-        try:
-            return self.cls(**json.loads(data.decode()))
-        except json.JSONDecodeError:
-            raise ValueError("Ошибка декодирования JSON при загрузке объекта.")
-        except Exception as e:
-            raise ValueError(f"Ошибка десериализации объекта: {e}")
 
 class SessionStorage:
     def __init__(self, path: str, serializer: IDataSerializer[Session]):
